@@ -69,7 +69,7 @@
         /* --- INTERFAZ DEL CHAT --- */
         #main-container {
             display: flex; flex-direction: column; height: 100vh;
-            filter: blur(5px);
+            filter: blur(10px);
             transition: 0.5s;
         }
 
@@ -116,14 +116,14 @@
     <div class="login-card">
         <img src="LOGOTRISIN.PNG" alt="Logo TRI" class="login-logo">
         <h2>ChatBot TRI</h2>
-        <p>Asistente de Gestión Rural</p>
+        <p>Asistente de Territorio Rural Inteligente</p>
         <div class="form-group">
             <label>Usuario</label>
-            <input type="text" id="user-input" class="login-input">
+            <input type="text" id="user-input" class="login-input" placeholder="Tu usuario">
         </div>
         <div class="form-group">
             <label>Contraseña</label>
-            <input type="password" id="pass-input" class="login-input" onkeypress="if(event.key==='Enter') login()">
+            <input type="password" id="pass-input" class="login-input" placeholder="Contraseña" onkeypress="if(event.key==='Enter') login()">
         </div>
         <button id="login-btn" onclick="login()">ENTRAR</button>
         <div id="login-error">Credenciales requeridas.</div>
@@ -139,7 +139,7 @@
         </div>
     </header>
     <div id="chat-window"></div>
-    <div id="status" class="typing">Procesando consulta...</div>
+    <div id="status" class="typing">Estoy pensando...</div>
     <div class="input-area">
         <div class="input-box">
             <input type="text" id="query" placeholder="Escribe tu consulta..." autocomplete="off">
@@ -149,6 +149,7 @@
 </div>
 
 <script>
+    // Configuración Global
     const N8N_URL = 'https://unsparse-shapely-mickie.ngrok-free.dev/webhook/f580034d-7d05-4cd6-92c6-9fa26dafdeb9/chat';
     const sessionId = "session_" + Math.random().toString(36).substr(2, 9);
     let userAuthToken = null;
@@ -158,22 +159,42 @@
     const sendBtn = document.getElementById('send-btn');
     const statusLabel = document.getElementById('status');
 
+    // Función para mostrar la interfaz (reutilizable)
+    function showChatInterface() {
+        document.getElementById('lock-screen').style.opacity = '0';
+        setTimeout(() => {
+            document.getElementById('lock-screen').style.display = 'none';
+            document.getElementById('main-container').style.filter = 'none';
+            // Mensaje de bienvenida solo si el chat está vacío
+            if (chatWindow.children.length === 0) {
+                appendMsg("¡Hola! Soy tu asistente de <strong>Territorio Rural Inteligente</strong>. ¿Qué necesitas consultar hoy?", "agent");
+            }
+            inputField.focus();
+        }, 500);
+    }
+
+    // Manejo de Login y Persistencia
     function login() {
         const u = document.getElementById('user-input').value.trim();
         const p = document.getElementById('pass-input').value.trim();
         if (u && p) {
             userAuthToken = btoa(u + ":" + p);
-            document.getElementById('lock-screen').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('lock-screen').style.display = 'none';
-                document.getElementById('main-container').style.filter = 'none';
-                appendMsg("¡Hola! Soy tu asistente de <strong>Territorio Rural Inteligente</strong>. ¿Qué necesitas consultar hoy?", "agent");
-                inputField.focus();
-            }, 500);
+            // Guardamos en localStorage para persistencia
+            localStorage.setItem('tri_session_token', userAuthToken);
+            showChatInterface();
         } else {
             document.getElementById('login-error').style.display = 'block';
         }
     }
+
+    // Comprobación automática al cargar la página
+    window.onload = () => {
+        const savedToken = localStorage.getItem('tri_session_token');
+        if (savedToken) {
+            userAuthToken = savedToken;
+            showChatInterface();
+        }
+    };
 
     function appendMsg(text, type) {
         const div = document.createElement('div');
@@ -204,15 +225,23 @@
                 body: JSON.stringify({ action: "sendMessage", chatInput: msg, sessionId: sessionId })
             });
 
-            if (!response.ok) throw new Error(`Error ${response.status}: Revisa CORS o credenciales.`);
+            if (!response.ok) throw new Error(`Error ${response.status}: Revisa la conexión.`);
 
             const data = await response.json();
-            let reply = Array.isArray(data) ? data[0].output : (data.output || data.text);
+            
+            // Lógica de respuesta flexible (n8n puede devolver array o objeto)
+            let reply = "";
+            if (Array.isArray(data)) {
+                reply = data[0].output || data[0].text;
+            } else {
+                reply = data.output || data.text || data.response;
+            }
+
             appendMsg(reply || "No he recibido respuesta del servidor.", 'agent');
 
         } catch (err) {
             console.error(err);
-            appendMsg("Lo siento, hay un problema de conexión (CORS). Asegúrate de que n8n permita peticiones externas.", 'agent');
+            appendMsg("Lo siento, hay un problema de conexión con el asistente.", 'agent');
         } finally {
             inputField.disabled = false;
             sendBtn.disabled = false;
