@@ -28,47 +28,89 @@
         /* --- PANTALLA DE ACCESO --- */
         #lock-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary) 100%);
+            /* Imagen de fondo del paisaje */
+            background-image: url('fondopaisajeTRI.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
             display: none; 
             justify-content: center; align-items: center;
             z-index: 1000; transition: all 0.5s ease;
         }
 
+        /* Overlay semitransparente para mejorar la legibilidad */
+        #lock-screen::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.35);
+        }
+
         .login-card {
-            background: var(--white);
-            padding: 25px 35px 35px; border-radius: 15px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-            width: 100%; max-width: 380px; text-align: center;
+            position: relative; /* Para que quede por encima del overlay */
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(6px);
+            padding: 18px 24px 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 300px; /* Más pequeño que los 380px originales */
+            text-align: center;
         }
 
         .login-logo {
-            width: 200px;
+            width: 150px; /* Reducido de 200px */
             height: auto; 
-            margin-bottom: -15px;
+            margin-bottom: -10px;
             display: block;
             margin-left: auto; margin-right: auto;
         }
 
-        .login-card h2 { color: var(--primary-dark); margin: 0 0 5px 0; }
-        .login-card p { color: #666; font-size: 0.9rem; margin-bottom: 25px; }
+        .login-card h2 {
+            color: var(--primary-dark);
+            margin: 0 0 3px 0;
+            font-size: 1.2rem; /* Ligeramente más pequeño */
+        }
+        .login-card p {
+            color: #666;
+            font-size: 0.82rem;
+            margin-bottom: 18px;
+        }
 
-        .form-group { text-align: left; margin-bottom: 15px; }
-        .form-group label { display: block; font-size: 0.8rem; font-weight: bold; margin-bottom: 5px; color: #444; }
+        .form-group { text-align: left; margin-bottom: 11px; }
+        .form-group label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-bottom: 4px;
+            color: #444;
+        }
         
         .login-input {
-            width: 100%; padding: 12px; border: 1px solid #ddd;
-            border-radius: 8px; box-sizing: border-box; font-size: 1rem;
+            width: 100%;
+            padding: 9px 10px;
+            border: 1px solid #ddd;
+            border-radius: 7px;
+            box-sizing: border-box;
+            font-size: 0.92rem;
         }
 
         #login-btn {
-            width: 100%; background: var(--primary); color: white;
-            border: none; padding: 14px; border-radius: 8px;
-            font-size: 1rem; font-weight: bold; cursor: pointer; transition: 0.3s;
-            margin-top: 10px;
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 11px;
+            border-radius: 7px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 8px;
         }
         #login-btn:hover { background: var(--primary-dark); }
 
-        #login-error { color: #d32f2f; font-size: 0.8rem; margin-top: 10px; display: none; }
+        #login-error { color: #d32f2f; font-size: 0.78rem; margin-top: 8px; display: none; }
 
         /* --- INTERFAZ DEL CHAT --- */
         #main-container {
@@ -91,11 +133,10 @@
         .header-titles h2 { margin: 0; font-size: 1.2rem; }
         .header-titles small { color: #666; font-size: 0.8rem; }
 
-        /* Botón salir */
         .logout-btn {
             position: absolute; right: 15px; bottom: 22px;
             background: none; border: none; color: #999;
-            font-size: 0.7rem; cursor: pointer; text-decoration:
+            font-size: 0.7rem; cursor: pointer;
         }
 
         #chat-window {
