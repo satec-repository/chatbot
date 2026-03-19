@@ -139,7 +139,7 @@
             font-size: 0.7rem; cursor: pointer;
         }
 
-        /* Contenedor scroll SIN barra visible, fondo fijo */
+        /* Contenedor scroll SIN barra visible */
         #chat-bg {
             flex: 1;
             position: relative;
@@ -148,13 +148,6 @@
             display: flex;
             justify-content: center;
             align-items: flex-start;
-            z-index: 1;
-            /* Fondo fijo que no se mueve al hacer scroll */
-            background-image: url('fondopaisajeTRI.png');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
             scrollbar-width: none;
             -ms-overflow-style: none;
         }
@@ -163,15 +156,28 @@
             display: none;
         }
 
-        /* Overlay suave encima del fondo */
+        /* Fondo difuminado FIJO — queda por detrás de los mensajes */
         #chat-bg::before {
             content: '';
             position: fixed;
             inset: 0;
-            background: rgba(244, 247, 244, 0.55);
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
+            background-image: url('fondopaisajeTRI.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            filter: blur(5px) brightness(0.92);
+            transform: scale(1.06); /* evita bordes blancos del blur */
             z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Overlay semitransparente por encima del fondo pero debajo de los mensajes */
+        #chat-bg::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: rgba(244, 247, 244, 0.45);
+            z-index: 1;
             pointer-events: none;
         }
 
@@ -182,7 +188,7 @@
             position: relative;
             z-index: 2;
             box-sizing: border-box;
-            min-height: 100%; /* empuja el contenido hacia abajo al crecer */
+            min-height: 100%;
         }
 
         .msg {
