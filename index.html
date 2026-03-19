@@ -26,7 +26,8 @@
         #lock-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary) 100%);
-            display: flex; justify-content: center; align-items: center;
+            display: none; /* Oculto por defecto para evitar parpadeo */
+            justify-content: center; align-items: center;
             z-index: 1000; transition: all 0.5s ease;
         }
 
@@ -68,7 +69,8 @@
 
         /* --- INTERFAZ DEL CHAT --- */
         #main-container {
-            display: flex; flex-direction: column; height: 100vh;
+            display: none; /* Oculto por defecto */
+            flex-direction: column; height: 100vh;
             filter: blur(10px);
             transition: 0.5s;
         }
@@ -80,7 +82,7 @@
             display: flex; align-items: center; justify-content: center;
         }
 
-        header img { height: 60px; width: auto; margin-right: 15px; }
+        header img { height: 100px; width: auto; margin-right: 15px; margin-bottom: -15px; }
 
         .header-titles h2 { margin: 0; font-size: 1.2rem; }
         .header-titles small { color: #666; font-size: 0.8rem; }
@@ -119,11 +121,11 @@
         <p>Asistente de Territorio Rural Inteligente</p>
         <div class="form-group">
             <label>Usuario</label>
-            <input type="text" id="user-input" class="login-input" placeholder="Tu usuario">
+            <input type="text" id="user-input" class="login-input">
         </div>
         <div class="form-group">
             <label>Contraseña</label>
-            <input type="password" id="pass-input" class="login-input" placeholder="Contraseña" onkeypress="if(event.key==='Enter') login()">
+            <input type="password" id="pass-input" class="login-input" onkeypress="if(event.key==='Enter') login()">
         </div>
         <button id="login-btn" onclick="login()">ENTRAR</button>
         <div id="login-error">Credenciales requeridas.</div>
@@ -134,7 +136,7 @@
     <header>
         <img src="LOGOTRISIN.PNG" alt="Logo">
         <div class="header-titles">
-            <h2>TRI | <span style="color: var(--primary);">Territorio Rural</span></h2>
+            <h2>TRI | <span style="color: var(--primary);">Territorio Rural Inteligente</span></h2>
             <small>Asistente Virtual - JCYL</small>
         </div>
     </header>
@@ -158,28 +160,34 @@
     const inputField = document.getElementById('query');
     const sendBtn = document.getElementById('send-btn');
     const statusLabel = document.getElementById('status');
+    const lockScreen = document.getElementById('lock-screen');
+    const mainContainer = document.getElementById('main-container');
 
-    // Función para mostrar la interfaz (reutilizable)
-    function showChatInterface() {
-        document.getElementById('lock-screen').style.opacity = '0';
-        setTimeout(() => {
-            document.getElementById('lock-screen').style.display = 'none';
-            document.getElementById('main-container').style.filter = 'none';
-            // Mensaje de bienvenida solo si el chat está vacío
-            if (chatWindow.children.length === 0) {
-                appendMsg("¡Hola! Soy tu asistente de <strong>Territorio Rural Inteligente</strong>. ¿Qué necesitas consultar hoy?", "agent");
-            }
-            inputField.focus();
-        }, 500);
+    function showChatInterface(instant = false) {
+        if (instant) {
+            lockScreen.style.display = 'none';
+            mainContainer.style.display = 'flex';
+            mainContainer.style.filter = 'none';
+        } else {
+            lockScreen.style.opacity = '0';
+            setTimeout(() => {
+                lockScreen.style.display = 'none';
+                mainContainer.style.display = 'flex';
+                mainContainer.style.filter = 'none';
+                inputField.focus();
+            }, 500);
+        }
+        
+        if (chatWindow.children.length === 0) {
+            appendMsg("¡Hola! Soy tu asistente de <strong>Territorio Rural Inteligente</strong>. ¿Qué necesitas consultar hoy?", "agent");
+        }
     }
 
-    // Manejo de Login y Persistencia
     function login() {
         const u = document.getElementById('user-input').value.trim();
         const p = document.getElementById('pass-input').value.trim();
         if (u && p) {
             userAuthToken = btoa(u + ":" + p);
-            // Guardamos en localStorage para persistencia
             localStorage.setItem('tri_session_token', userAuthToken);
             showChatInterface();
         } else {
@@ -187,14 +195,16 @@
         }
     }
 
-    // Comprobación automática al cargar la página
-    window.onload = () => {
+    // Comprobación de sesión inmediata al cargar el script
+    (function checkSession() {
         const savedToken = localStorage.getItem('tri_session_token');
         if (savedToken) {
             userAuthToken = savedToken;
-            showChatInterface();
+            showChatInterface(true); // Se muestra instantáneamente
+        } else {
+            lockScreen.style.display = 'flex'; // Solo se muestra el login si no hay token
         }
-    };
+    })();
 
     function appendMsg(text, type) {
         const div = document.createElement('div');
@@ -225,23 +235,14 @@
                 body: JSON.stringify({ action: "sendMessage", chatInput: msg, sessionId: sessionId })
             });
 
-            if (!response.ok) throw new Error(`Error ${response.status}: Revisa la conexión.`);
+            if (!response.ok) throw new Error(`Error ${response.status}`);
 
             const data = await response.json();
-            
-            // Lógica de respuesta flexible (n8n puede devolver array o objeto)
-            let reply = "";
-            if (Array.isArray(data)) {
-                reply = data[0].output || data[0].text;
-            } else {
-                reply = data.output || data.text || data.response;
-            }
-
-            appendMsg(reply || "No he recibido respuesta del servidor.", 'agent');
+            let reply = Array.isArray(data) ? data[0].output : (data.output || data.text || data.response);
+            appendMsg(reply || "No he recibido respuesta.", 'agent');
 
         } catch (err) {
-            console.error(err);
-            appendMsg("Lo siento, hay un problema de conexión con el asistente.", 'agent');
+            appendMsg("Error de conexión con el asistente.", 'agent');
         } finally {
             inputField.disabled = false;
             sendBtn.disabled = false;
