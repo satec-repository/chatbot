@@ -139,28 +139,7 @@
             font-size: 0.7rem; cursor: pointer;
         }
 
-        /* Imagen de fondo FIJA detrás del área de chat */
-        #chat-bg-fixed {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-image: url('fondopaisajeTRI.png');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            filter: blur(5px) brightness(0.90);
-            transform: scale(1.06);
-            z-index: 0;
-            pointer-events: none;
-        }
-
-        #chat-bg-fixed::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: rgba(244, 247, 244, 0.52);
-        }
-
-        /* Contenedor scroll SIN barra visible */
+        /* Contenedor scroll SIN barra visible, fondo fijo */
         #chat-bg {
             flex: 1;
             position: relative;
@@ -170,12 +149,30 @@
             justify-content: center;
             align-items: flex-start;
             z-index: 1;
-            scrollbar-width: none;        /* Firefox */
-            -ms-overflow-style: none;     /* IE / Edge */
+            /* Fondo fijo que no se mueve al hacer scroll */
+            background-image: url('fondopaisajeTRI.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
         }
 
         #chat-bg::-webkit-scrollbar {
-            display: none;                /* Chrome / Safari */
+            display: none;
+        }
+
+        /* Overlay suave encima del fondo */
+        #chat-bg::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: rgba(244, 247, 244, 0.55);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            z-index: 0;
+            pointer-events: none;
         }
 
         #chat-window {
@@ -228,7 +225,6 @@
 </div>
 
 <div id="main-container">
-    <div id="chat-bg-fixed"></div>
     <header>
         <img src="LOGOTRISIN.PNG" alt="Logo">
         <div class="header-titles">
