@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thinking Cities | Rural - SATEC</title>
+    <title>TRI | Territorio Rural Inteligente - JCYL</title>
     <style>
         :root {
             --primary: #2e7d32;
@@ -72,8 +72,8 @@
 <body>
 
 <header>
-    <h2 style="margin:0;">Thinking Cities | <span style="color: var(--primary);">Rural</span></h2>
-    <small>Acceso Protegido n8n - Gestión de Territorios</small>
+    <h2 style="margin:0;">TRI | <span style="color: var(--primary);">Territorio Rural Inteligente</span></h2>
+    <small>Asistente Virtual - Gestión de TRI</small>
 </header>
 
 <div id="chat-window"></div>
@@ -101,13 +101,13 @@
     const statusLabel = document.getElementById('status');
 
     window.onload = () => {
-        appendMsg("Bienvenido al asistente SATEC Rural. Por favor, identifícate al enviar tu primer mensaje.", "agent");
+        appendMsg("Bienvenido al asistente de TRI. Por favor, identifícate al enviar tu primer mensaje.", "agent");
     };
 
     function appendMsg(text, type) {
         const div = document.createElement('div');
         div.className = `msg ${type}`;
-        div.innerHTML = `<span class="author">${type === 'user' ? 'Tú' : 'Asistente'}</span>${text}`;
+        div.innerHTML = `<span class="author">${type === 'user' ? 'Tú' : 'Asistente de TRI'}</span>${text}`;
         chatWindow.appendChild(div);
         chatWindow.scrollTop = chatWindow.scrollHeight;
     }
@@ -161,7 +161,7 @@
 
         } catch (err) {
             console.error(err);
-            appendMsg("Error de red. Verifica que el túnel de ngrok esté ONLINE en la VM.", 'agent');
+            appendMsg("Error de red. Verifica que el túnel esté ONLINE en la VM.", 'agent');
         } finally {
             inputField.disabled = false;
             sendBtn.disabled = false;
