@@ -50,7 +50,6 @@
             border-radius: 15px;
             font-size: 0.95rem;
             line-height: 1.4;
-            position: relative;
             box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
 
@@ -62,7 +61,7 @@
         .input-area { background: white; padding: 20px; border-top: 1px solid #eee; display: flex; justify-content: center; }
         .input-box { max-width: 900px; width: 100%; display: flex; gap: 10px; }
 
-        input#query { flex: 1; padding: 12px 20px; border: 2px solid #e0e0e0; border-radius: 30px; outline: none; transition: 0.3s; }
+        input#query { flex: 1; padding: 12px 20px; border: 2px solid #e0e0e0; border-radius: 30px; outline: none; }
         input#query:focus { border-color: var(--primary); }
 
         button#send-btn { background: var(--primary); color: white; border: none; padding: 0 25px; border-radius: 30px; cursor: pointer; font-weight: bold; }
@@ -74,38 +73,41 @@
 
 <header>
     <h2 style="margin:0;">Thinking Cities | <span style="color: var(--primary);">Rural</span></h2>
-    <small>Plataforma de Gestión Inteligente - Acceso Protegido</small>
+    <small>Acceso Protegido n8n - Gestión de Territorios</small>
 </header>
 
 <div id="chat-window"></div>
-<div id="status" class="typing">Procesando consulta técnica...</div>
+<div id="status" class="typing">Conectando con el nodo central...</div>
 
 <div class="input-area">
     <div class="input-box">
-        <input type="text" id="query" placeholder="Escribe tu consulta aquí..." autocomplete="off">
+        <input type="text" id="query" placeholder="Escribe tu consulta..." autocomplete="off">
         <button id="send-btn">Enviar</button>
     </div>
 </div>
 
 <script>
-    // URL FIJA DE TU TÚNEL NGROK
     const N8N_URL = 'https://unsparse-shapely-mickie.ngrok-free.dev/webhook/f580034d-7d05-4cd6-92c6-9fa26dafdeb9/chat';
     
+    // Generamos un ID de sesión único
     const sessionId = "session_" + Math.random().toString(36).substr(2, 9);
+    
+    // Aquí guardaremos la clave en memoria (se borra al cerrar la pestaña)
+    let userAuthToken = null;
+
     const chatWindow = document.getElementById('chat-window');
     const inputField = document.getElementById('query');
     const sendBtn = document.getElementById('send-btn');
     const statusLabel = document.getElementById('status');
 
-    // Mensaje de bienvenida inicial
     window.onload = () => {
-        appendMsg("Bienvenido al asistente de Smart Rural. La conexión es segura. ¿En qué puedo ayudarte?", "agent");
+        appendMsg("Bienvenido al asistente SATEC Rural. Por favor, identifícate al enviar tu primer mensaje.", "agent");
     };
 
     function appendMsg(text, type) {
         const div = document.createElement('div');
         div.className = `msg ${type}`;
-        div.innerHTML = `<span class="author">${type === 'user' ? 'Usuario' : 'SATEC Rural'}</span>${text}`;
+        div.innerHTML = `<span class="author">${type === 'user' ? 'Tú' : 'Asistente'}</span>${text}`;
         chatWindow.appendChild(div);
         chatWindow.scrollTop = chatWindow.scrollHeight;
     }
@@ -113,6 +115,17 @@
     async function handleChat() {
         const msg = inputField.value.trim();
         if(!msg) return;
+
+        // Si es el primer mensaje, pedimos credenciales
+        if (!userAuthToken) {
+            const user = prompt("Introduce Usuario:");
+            const pass = prompt("Introduce Contraseña:");
+            if (!user || !pass) {
+                alert("Se requieren credenciales para usar el chatbot.");
+                return;
+            }
+            userAuthToken = btoa(user + ":" + pass);
+        }
 
         appendMsg(msg, 'user');
         inputField.value = '';
@@ -124,9 +137,8 @@
             const response = await fetch(N8N_URL, {
                 method: 'POST',
                 headers: { 
-                    'Content-Type': 'application/json'
-                    // IMPORTANTE: No enviamos Authorization aquí. 
-                    // El navegador detectará el 401 de Ngrok y pedirá el login automáticamente.
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Basic ' + userAuthToken
                 },
                 body: JSON.stringify({ 
                     action: "sendMessage",
@@ -136,18 +148,20 @@
             });
 
             if (response.status === 401) {
-                appendMsg("Error de autenticación. Por favor, introduce las credenciales de acceso cuando el navegador las solicite.", "agent");
+                alert("Acceso denegado: Usuario o contraseña incorrectos.");
+                userAuthToken = null; // Reset para permitir reintento
                 return;
             }
 
             const data = await response.json();
+            // n8n puede devolver un array o un objeto directo
             let reply = Array.isArray(data) ? data[0].output : (data.output || data.text);
             
-            appendMsg(reply || "No hay respuesta del servidor.", 'agent');
+            appendMsg(reply || "El servidor no devolvió texto.", 'agent');
 
         } catch (err) {
             console.error(err);
-            appendMsg("Error crítico de conexión. Asegúrate de que el túnel Ngrok esté activo.", 'agent');
+            appendMsg("Error de red. Verifica que el túnel de ngrok esté ONLINE en la VM.", 'agent');
         } finally {
             inputField.disabled = false;
             sendBtn.disabled = false;
