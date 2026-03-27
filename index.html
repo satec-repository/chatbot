@@ -23,7 +23,6 @@
             overflow: hidden;
         }
 
-        /* ---- VÍDEO DE FONDO GLOBAL ---- */
         #bg-video {
             position: fixed;
             top: 50%; left: 50%;
@@ -41,7 +40,6 @@
             display: none; justify-content: center; align-items: center;
             z-index: 1000; transition: all 0.5s ease;
         }
-        /* Overlay oscuro sobre el vídeo en el login */
         #lock-screen::before {
             content: ''; position: absolute; inset: 0;
             background: rgba(0, 0, 0, 0.40);
@@ -75,12 +73,7 @@
             filter: blur(10px); transition: 0.5s; position: relative;
         }
 
-        /* Overlay suave sobre el vídeo en el chat */
-        #chat-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(244, 247, 244, 0.45);
-            z-index: 1; pointer-events: none;
-        }
+        /* Sin overlay: vídeo se ve limpio */
 
         header {
             background: white; color: var(--primary-dark);
@@ -110,8 +103,11 @@
         .user { align-self: flex-end; background-color: var(--user-bubble); color: #1b5e20; border-bottom-right-radius: 2px; }
         .agent { align-self: flex-start; background-color: var(--agent-bubble); color: #333; border-bottom-left-radius: 2px; border: 1px solid #eee; }
         .author { font-weight: bold; font-size: 0.75rem; display: block; margin-bottom: 5px; text-transform: uppercase; color: #888; }
+
         .input-area {
-            background: white; padding: 20px; border-top: 1px solid #eee;
+            background: white; padding: 20px;
+            border-top: 2px solid var(--primary); /* línea verde arriba del input, igual que la cabecera */
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
             display: flex; justify-content: center;
             flex-shrink: 0; position: relative; z-index: 10;
         }
@@ -123,7 +119,6 @@
 </head>
 <body>
 
-<!-- Vídeo de fondo compartido (login y chat) -->
 <video id="bg-video" autoplay muted loop playsinline>
     <source src="fondovid2.mp4" type="video/mp4">
 </video>
@@ -147,7 +142,6 @@
 </div>
 
 <div id="main-container">
-    <div id="chat-overlay"></div>
     <header>
         <img src="LOGOTRISIN.PNG" alt="Logo">
         <div class="header-titles">
@@ -204,13 +198,11 @@
     function login() {
         const u = document.getElementById('user-input').value.trim();
         const p = document.getElementById('pass-input').value.trim();
-
         if (!u || !p) {
             errorDiv.textContent = 'Introduce usuario y contraseña.';
             errorDiv.style.display = 'block';
             return;
         }
-
         errorDiv.style.display = 'none';
         userAuthToken = btoa(u + ':' + p);
         localStorage.setItem('tri_session_token', userAuthToken);
