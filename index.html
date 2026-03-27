@@ -314,13 +314,17 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Basic ' + userAuthToken,
                     'ngrok-skip-browser-warning': 'true'
                 },
                 body: JSON.stringify({
                     action: "sendMessage",
                     chatInput: msg,
-                    sessionId: sessionId
+                    sessionId: sessionId,
+                    auth: {
+                        user: currentUser ? currentUser.split('\\')[1] : '',
+                        domain: currentUser ? currentUser.split('\\')[0] : '',
+                        token: userAuthToken
+                    }
                 })
             });
 
