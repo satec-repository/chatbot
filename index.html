@@ -234,27 +234,75 @@
         }
     }
 
-    function login() {
+    async function login() {
         const d = document.getElementById('domain-input').value.trim();
         const u = document.getElementById('user-input').value.trim();
         const p = document.getElementById('pass-input').value.trim();
 
         if (!d || !u || !p) {
-            errorDiv.textContent = 'Introduce dominio, usuario y contraseña.';
+            errorDiv.textContent = 'Introduce usuario, contraseña y dominio.';
             errorDiv.style.display = 'block';
             return;
         }
 
         errorDiv.style.display = 'none';
+        const loginBtn = document.getElementById('login-btn');
+        loginBtn.textContent = 'Verificando...';
+        loginBtn.disabled = true;
 
-        // Formato requerido por Keystone: dominio\usuario:password
-        userAuthToken = btoa(d + '\\' + u + ':' + p);
-        currentUser = d + '\\' + u;
+        try {
+            const keystoneUrl = 'https://auth-test.territoriointeligente.jcyl.es/v3/auth/tokens';
+            const response = await fetch(keystoneUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    auth: {
+                        identity: {
+                            methods: ['password'],
+                            password: {
+                                user: {
+                                    domain: { name: d },
+                                    name: u,
+                                    password: p
+                                }
+                            }
+                        }
+                    }
+                })
+            });
 
-        localStorage.setItem('tri_session_token', userAuthToken);
-        localStorage.setItem('tri_session_user', currentUser);
+            if (response.status === 401) {
+                errorDiv.textContent = 'Usuario o contraseña incorrectos.';
+                errorDiv.style.display = 'block';
+                return;
+            }
 
-        showChatInterface();
+            if (response.status === 404) {
+                errorDiv.textContent = 'Dominio no encontrado.';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            if (!response.ok) {
+                errorDiv.textContent = 'Error de autenticación. Inténtalo de nuevo.';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            // Credenciales correctas — guardar sesión y entrar al chat
+            userAuthToken = btoa(d + '\\' + u + ':' + p);
+            currentUser = d + '\\' + u;
+            localStorage.setItem('tri_session_token', userAuthToken);
+            localStorage.setItem('tri_session_user', currentUser);
+            showChatInterface();
+
+        } catch (e) {
+            errorDiv.textContent = 'No se pudo conectar con el servidor. Inténtalo de nuevo.';
+            errorDiv.style.display = 'block';
+        } finally {
+            loginBtn.textContent = 'ACCEDER';
+            loginBtn.disabled = false;
+        }
     }
 
     function logout() {
